@@ -29,35 +29,23 @@ class ExtendedKalmanFilter:
     @staticmethod
     def dg_dcontrol(state, control, w):
         theta = state[2]
-        l, r = control
-        alpha = (r - l) / w
-        theta_prime = theta+alpha
-        r_plus_l = r+l
-        r_minus_l = r-l
-        l_divide_w = l/w
+        l, r = tuple(control)
         if r != l:
-           
-            g1_dl = w*r/(r_minus_l*r_minus_l) * (sin(theta_prime)-sin(theta)) - r_plus_l/(2*r_minus_l) * cos(theta_prime)
-            g2_dl = w*r/(r_minus_l*r_minus_l) * (-cos(theta_prime)+cos(theta)) - r_plus_l/(2*r_minus_l) * sin(theta_prime)
-            g3_dl = -1/w
-            
-            g1_dr = -(w*l)/(r_minus_l*r_minus_l) * (sin(theta_prime)-sin(theta)) + r_plus_l/(2*r_minus_l) * cos(theta_prime)
-            g2_dr = -(w*l)/(r_minus_l*r_minus_l) * (-cos(theta_prime)+cos(theta)) + r_plus_l/(2*r_minus_l)  *sin(theta_prime)
-            g3_dr = 1/w
-            m = array([[g1_dl,g1_dr],[g2_dl,g2_dr],[g3_dl,g3_dr]])  # Replace this.
 
-        else:
-            g1_dl = 0.5 * (cos(theta) + (l_divide_w * sin(theta)))
-            g2_dl = 0.5 * (sin(theta) - (l_divide_w * cos(theta)))
-            g3_dl = -1/w
-            
-            g1_dr = 0.5 * (-(l_divide_w * sin(theta)) + cos(theta))
-            g2_dr = 0.5 * (l_divide_w * cos(theta) + sin(theta))
-            g3_dr = 1/w
             # --->>> Put your code here.
-            # This is for the special case r == l.
-            m = array([[g1_dl,g1_dr],[g2_dl,g2_dr],[g3_dl,g3_dr]]) # Replace this.
+            # This is for the case l != r.
+            # Note g has 3 components and control has 2, so the result
+            # will be a 3x2 (rows x columns) matrix.
+            pass  # Remove this.
+            
+            
+        else:
 
+            # --->>> Put your code here.
+            # This is for the special case l == r.
+            pass  # Remove this.            
+
+        m = array([[1, 2], [3, 4], [5, 6]])  # Remove this.
             
         return m
 
@@ -74,7 +62,7 @@ if __name__ == '__main__':
     theta = 35. / 180. * pi
     state = array([x, y, theta])
     l = 50.0
-    r = 50.0
+    r = 54.32
     control = array([l, r])
     w = 150.0
 
