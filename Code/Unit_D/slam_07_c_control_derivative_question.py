@@ -47,11 +47,11 @@ class ExtendedKalmanFilter:
             m = array([[g1_dl,g1_dr],[g2_dl,g2_dr],[g3_dl,g3_dr]])  # Replace this.
 
         else:
-            g1_dl = 0.5 * (cos(theta) + (l_divide_w * sin(theta)))
-            g2_dl = 0.5 * (sin(theta) - (l_divide_w * cos(theta)))
+            g1_dl = 0.5 * (cos(theta) +  l_divide_w* sin(theta))
+            g2_dl = 0.5 * (sin(theta) - l_divide_w * cos(theta))
             g3_dl = -1/w
             
-            g1_dr = 0.5 * (-(l_divide_w * sin(theta)) + cos(theta))
+            g1_dr = 0.5 * (-l_divide_w * sin(theta) + cos(theta))
             g2_dr = 0.5 * (l_divide_w * cos(theta) + sin(theta))
             g3_dr = 1/w
             # --->>> Put your code here.
@@ -73,8 +73,8 @@ if __name__ == '__main__':
     y = 20.0
     theta = 35. / 180. * pi
     state = array([x, y, theta])
-    l = 50.0
-    r = 50.0
+    l = 40.0
+    r = 40.0
     control = array([l, r])
     w = 150.0
 

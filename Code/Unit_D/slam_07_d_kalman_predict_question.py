@@ -5,7 +5,8 @@
 from lego_robot import *
 from math import sin, cos, pi, atan2
 from numpy import *
-
+#from slam_07_b_state_derivative_question import *
+#from slam_07_c_control_derivative_question import *
 
 class ExtendedKalmanFilter:
     def __init__(self, state, covariance,
@@ -39,17 +40,58 @@ class ExtendedKalmanFilter:
 
     @staticmethod
     def dg_dstate(state, control, w):
-
+        theta = state[2]
+        l, r = control
+        if r != l:
+            alpha = (r - l) / w
+            R = l/alpha
+            g1_dtheta = (R+w/2)*(cos(theta+alpha)-cos(theta))
+            g2_dtheta = (R+w/2)*(sin(theta+alpha)-sin(theta))
+            m = array([[1, 0, g1_dtheta], [0, 1, g2_dtheta], [0,0,1]])  # Replace this.
+        else:
+            g1_dtheta = -l*sin(theta)
+            g2_dtheta = l*cos(theta)    
+            m = array([[1, 0, g1_dtheta], [0, 1, g2_dtheta], [0,0,1]])  # Replace this.
+        return m
         # --->>> Copy your previous dg_dstate code here.
 
-        return array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        
 
     @staticmethod
     def dg_dcontrol(state, control, w):
+        theta = state[2]
+        l, r = control
+        alpha = (r - l) / w
+        theta_prime = theta+alpha
+        r_plus_l = r+l
+        r_minus_l = r-l
+        #l_divide_w = l/w
+        if r != l:
+           
+            g1_dl = w*r/(r_minus_l*r_minus_l) * (sin(theta_prime)-sin(theta)) - r_plus_l/(2*r_minus_l) * cos(theta_prime)
+            g2_dl = w*r/(r_minus_l*r_minus_l) * (-cos(theta_prime)+cos(theta)) - r_plus_l/(2*r_minus_l) * sin(theta_prime)
+            g3_dl = -1/w
+            
+            g1_dr = -(w*l)/(r_minus_l*r_minus_l) * (sin(theta_prime)-sin(theta)) + r_plus_l/(2*r_minus_l) * cos(theta_prime)
+            g2_dr = -(w*l)/(r_minus_l*r_minus_l) * (-cos(theta_prime)+cos(theta)) + r_plus_l/(2*r_minus_l)  *sin(theta_prime)
+            g3_dr = 1/w
+            m = array([[g1_dl,g1_dr],[g2_dl,g2_dr],[g3_dl,g3_dr]])  # Replace this.
+
+        else:
+            g1_dl = 0.5 * (cos(theta) +  (l/w)* sin(theta))
+            g2_dl = 0.5 * (sin(theta) - (l/w) * cos(theta))
+            g3_dl = -1/w
+            
+            g1_dr = 0.5 * (-(l/w) * sin(theta) + cos(theta))
+            g2_dr = 0.5 * ((l/w) * cos(theta) + sin(theta))
+            g3_dr = 1/w
+            # --->>> Put your code here.
+            # This is for the special case r == l.
+            m = array([[g1_dl,g1_dr],[g2_dl,g2_dr],[g3_dl,g3_dr]]) # Replace this.
 
         # --->>> Copy your previous dg_dcontrol code here.
             
-        return array([[1, 2], [3, 4], [5, 6]])
+        return m
 
     @staticmethod
     def get_error_ellipse(covariance):
@@ -67,8 +109,30 @@ class ExtendedKalmanFilter:
         # covariance' = G * covariance * GT + R
         # where R = V * (covariance in control space) * VT.
         # Covariance in control space depends on move distance.
-        left, right = control
-
+        
+        #construct diagnal cov_matrix in control space
+        l, r = control
+        alpha1 = self.control_motion_factor
+        alpha2 = self.control_turn_factor
+        cov_l = (alpha1*l)**2 + (alpha2*(l-r))**2
+        cov_r = (alpha1*r)**2 + (alpha2*(l-r))**2
+        control_cov_matrix = diag([cov_l,cov_r])
+        
+        V = self.dg_dcontrol(self.state, control, self.robot_width)
+        
+        #Noise part = V @ control_covariance @ V.transpose
+        Rt_1 = dot(V,control_cov_matrix)
+        Rt_part = dot(Rt_1, V.T)
+         
+        G = self.dg_dstate(self.state, control, self.robot_width)
+        
+        #state part = G @ covariance @ G.transpose
+        state_1 = dot(G,self.covariance)
+        state_part = dot(state_1,G.T)
+        
+        #update the predicted covariance
+        self.covariance = state_part + Rt_part
+        
         # --->>> Put your code to compute the new self.covariance here.
         # First, construct the control_covariance, which is a diagonal matrix.
         # In Python/Numpy, you may use diag([a, b]) to get
@@ -82,9 +146,10 @@ class ExtendedKalmanFilter:
         # is not intended here.
 
         # state' = g(state, control)
-
+        #update predicted state
+        self.state = self.g(self.state, control, self.robot_width)
         # --->>> Put your code to compute the new self.state here.
-
+        
 
 if __name__ == '__main__':
     # Robot constants.

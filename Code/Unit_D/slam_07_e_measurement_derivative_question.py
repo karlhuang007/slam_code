@@ -23,14 +23,32 @@ class ExtendedKalmanFilter:
 
     @staticmethod
     def dh_dstate(state, landmark, scanner_displacement):
-
+        
         # --->>> Insert your code here.
         # Note that:
         # x y theta is state[0] state[1] state[2]
         # x_m y_m is landmark[0] landmark[1]
         # The Jacobian of h is a 2x3 matrix.
-
-        return array([[1, 2, 3], [4, 5, 6]]) # Replace this.
+        d = scanner_displacement
+        x,y,theta = state
+        xm,ym = landmark
+        xl = x + d * cos(theta)
+        yl = y + d * sin(theta)
+        #do some substitude to simple the equation
+        delta_x = xm - xl
+        delta_y = ym - yl
+        
+        q = (xm-xl)*(xm-xl) + (ym-yl)*(ym-yl)
+        #calculate the derivetive of  r and alpha w.r.t. state
+        dr_dx = -delta_x/sqrt(q)
+        dr_dy = -delta_y/sqrt(q)
+        dr_dtheta = (d/sqrt(q)) * (delta_x * sin(theta) - delta_y * cos(theta))
+        
+        dalpha_dx = delta_y/q
+        dalpha_dy = -delta_x/q
+        dalpha_dtheta = -d/q * (delta_x * cos(theta) + delta_y * sin(theta)) - 1
+        
+        return array([[dr_dx,dr_dy,dr_dtheta], [dalpha_dx,dalpha_dy,dalpha_dtheta]]) # Replace this.
 
 
 if __name__ == '__main__':

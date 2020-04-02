@@ -30,9 +30,14 @@ class ExtendedKalmanFilter:
     def dg_dstate(state, control, w):
         theta = state[2]
         l, r = control
-        alpha = (r - l) / w
-        R = l/alpha
+        #alpha = (r - l) / w
+        #R = l/alpha
+        """this upper two parameters should be placed in if{}, which seted as a local parameter,
+        in this way,it wont counter some divide 0 problem, and will save you from data precision 
+        problem"""
         if r != l:
+            alpha = (r - l) / w
+            R = l/alpha
             g1_dtheta = (R+w/2)*(cos(theta+alpha)-cos(theta))
             g2_dtheta = (R+w/2)*(sin(theta+alpha)-sin(theta))
             # --->>> Put your code here.
