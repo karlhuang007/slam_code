@@ -39,10 +39,29 @@ class ParticleFilter:
 
     def predict(self, control):
         """The prediction step of the particle filter."""
-        left, right = control
-
+        l, r = control
+        #left_center = sum(l)/len(control)
+        #right_center = sum(r)/len(control)
+        alpha1 = self.control_motion_factor
+        alpha2 = self.control_turn_factor
         # --->>> Put your code here.
-
+        # calculate the standard diviation of Normal distrubution of control
+        cov_l_squar = (alpha1 * l)**2 + (alpha2 * (l-r))**2 # details is demon, make it right
+        cov_r_squar = (alpha1 * r)**2 + (alpha2 * (l-r))**2
+        
+        
+        particle_list = []
+        for i in xrange(len(self.particles)):
+        #"""# worst for loop, in python we can use for loop without
+        #  use its index i to access its value"""
+        #for particle in self.particles:
+            #do the smaple of contral(gaussian model)
+            l_sample = random.gauss(l,sqrt(cov_l_squar)) # hier second variance is stddev which is sqrt(variance)
+            r_sample = random.gauss(r,sqrt(cov_r_squar))
+            control_sample = [l_sample,r_sample]
+            # predict the new particle
+            particle_list.append(self.g(self.particles[i],control_sample,self.robot_width))
+        self.particles = particle_list
         # Compute left and right variance.
         # alpha_1 is self.control_motion_factor.
         # alpha_2 is self.control_turn_factor.
